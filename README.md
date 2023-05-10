@@ -1,11 +1,144 @@
-This Java code demonstrates a simple Traffic Light System using three behavioral design patterns: Observer, Command, and State.
+# În exemplul de cod pe care l-am scris sunt utilizate doua Behavioral Design Patterns diferite.
+## Observer Pattern: 
+Interfața TrafficLightObserver reprezintă observatorii semaforului și definește metoda update(TrafficLightState state), care este apelată atunci când starea semaforului se schimbă.
+Clasa TrafficLight acționează ca subiectul observat. Aceasta menține o listă de observatori și oferă metode pentru a adăuga și elimina observatori.
+Atunci când starea semaforului se schimbă prin intermediul metodei setState(TrafficLightState state), se apelează metoda notifyObservers() pentru a notifica toți observatorii înregistrați. Fiecare observator este apelat prin metoda update(TrafficLightState state), permițându-le să reacționeze la schimbarea stării semaforului.
 
-Observer pattern: The Observer pattern is used to create a subscription mechanism where an object (subscriber) listens for changes in the state of another object (publisher) and is notified when the state changes. In this example, the TrafficLight class is the publisher, and the TrafficLightObserver interface represents the subscribers.
+```
+public interface TrafficLightObserver {
 
-Command pattern: The Command pattern is used to encapsulate actions (or requests) as objects, allowing for parameterization and queuing of requests. In this example, the Command interface is used to create a ChangeStateCommand class, which takes a TrafficLight instance and the new state it should change to.
+  void update(TrafficLightState state);
+}
+----------------------------------------------------
+----------------------------------------------------
+public interface TrafficLightState {
 
-State pattern: The State pattern is used to allow an object to change its behavior based on its internal state. In this example, the TrafficLightState interface and its implementations (RedState, YellowState, and GreenState) represent the different states of a traffic light.
+  String getColor();
+}
+----------------------------------------------------
+----------------------------------------------------
+import java.util.ArrayList;
+import java.util.List;
 
-In the Main class, a TrafficLight object is created, and an observer (a lambda expression) is added to it. The observer simply prints the new color of the traffic light whenever the state changes. Next, three ChangeStateCommand objects are created to change the traffic light to red, yellow, and green states. The commands are then executed, resulting in state changes and observer notifications.
+public class TrafficLight {
 
-This code demonstrates how to use Observer, Command, and State design patterns in a simple Java project. These patterns can help make the code more modular, maintainable, and extensible.
+  private List<TrafficLightObserver> observers;
+  private TrafficLightState state;
+
+  public TrafficLight() {
+    observers = new ArrayList<>();
+  }
+
+  public void addObserver(TrafficLightObserver observer) {
+    observers.add(observer);
+  }
+
+  public void removeObserver(TrafficLightObserver observer) {
+    observers.remove(observer);
+  }
+
+  public void setState(TrafficLightState state) {
+    this.state = state;
+    notifyObservers();
+  }
+
+  private void notifyObservers() {
+    for (TrafficLightObserver observer : observers) {
+      observer.update(state);
+    }
+  }
+}
+
+```
+## Command Pattern:
+Interfața Command reprezintă o comandă abstractă, care definește metoda execute().
+Clasa ChangeStateCommand implementează interfața Command și reprezintă o comandă specifică pentru a schimba starea semaforului. Aceasta primește un obiect TrafficLight și o nouă stare (TrafficLightState) ca parametri în constructorul său.
+Metoda execute() a clasei ChangeStateCommand schimbă starea semaforului, apelând metoda setState(TrafficLightState state) a obiectului TrafficLight pe care l-a primit în constructor.
+
+```
+public interface Command {
+
+  void execute();
+}
+----------------------------------------------
+----------------------------------------------
+public class ChangeStateCommand implements Command {
+
+  private TrafficLight trafficLight;
+  private TrafficLightState newState;
+
+  public ChangeStateCommand(TrafficLight trafficLight, TrafficLightState newState) {
+    this.trafficLight = trafficLight;
+    this.newState = newState;
+  }
+
+  @Override
+  public void execute() {
+    trafficLight.setState(newState);
+  }
+}
+---------------------------------------------
+---------------------------------------------
+import java.util.ArrayList;
+import java.util.List;
+
+public class TrafficLight {
+
+  private List<TrafficLightObserver> observers;
+  private TrafficLightState state;
+
+  public TrafficLight() {
+    observers = new ArrayList<>();
+  }
+
+  public void addObserver(TrafficLightObserver observer) {
+    observers.add(observer);
+  }
+
+  public void removeObserver(TrafficLightObserver observer) {
+    observers.remove(observer);
+  }
+
+  public void setState(TrafficLightState state) {
+    this.state = state;
+    notifyObservers();
+  }
+
+  private void notifyObservers() {
+    for (TrafficLightObserver observer : observers) {
+      observer.update(state);
+    }
+  }
+}
+
+```
+## Metoda Main
+În metoda main din clasa Main, se demonstrează utilizarea design patterns:
+
+Se creează un obiect TrafficLight și se adaugă un observator care afișează starea semaforului atunci când se schimbă.
+Se creează trei comenzi (ChangeStateCommand) pentru a schimba stările semaforului la roșu, galben și verde.
+Fiecare comandă este apelată prin metoda execute(), ceea ce duce la schimbarea stării semaforului și notificarea observatorului înregistrat, care afișează starea actualizată a semaforului.
+```
+import java.util.ArrayList;
+import java.util.List;
+
+public class Main {
+  public static void main(String[] args) {
+    TrafficLight trafficLight = new TrafficLight();
+
+    // Add an observer
+    trafficLight.addObserver(state -> System.out.println("Traffic light changed to: " + state.getColor()));
+
+    // Create commands to change traffic light states
+    Command changeToRed = new ChangeStateCommand(trafficLight, new RedState());
+    Command changeToYellow = new ChangeStateCommand(trafficLight, new YellowState());
+    Command changeToGreen = new ChangeStateCommand(trafficLight, new GreenState());
+
+    // Execute commands to change states
+    changeToRed.execute();
+    changeToYellow.execute();
+    changeToGreen.execute();
+  }
+}
+
+```
